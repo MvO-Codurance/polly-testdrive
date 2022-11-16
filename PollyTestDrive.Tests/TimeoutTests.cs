@@ -82,4 +82,48 @@ public class TimeoutTests
 
         await act.Should().ThrowExactlyAsync<TimeoutRejectedException>();
     }
+    
+    [Fact]
+    public async Task Optimistic_Timeout_After_2_Seconds_And_Retry_3_Times()
+    {
+        int totalAttempts = 0;
+        Stopwatch sw = new();
+        sw.Start();
+
+        // use TimeoutStrategy.Optimistic where the delegate supports co-operative cancellation
+        
+        var waitAndRetryPolicy = Policy
+            .Handle<TimeoutRejectedException>()
+            .WaitAndRetryAsync(
+                retryCount: 3,
+                sleepDurationProvider: _ => TimeSpan.FromSeconds(3),
+                onRetry: (exception, calculatedWaitDuration) =>
+                {
+                    _outputHelper.WriteLine($"[{sw.Elapsed}] Retry {++totalAttempts} after {calculatedWaitDuration} failed with error: {exception.Message}");
+                });
+        
+        var timeoutPolicy = Policy
+            .TimeoutAsync(
+                timeout: TimeSpan.FromSeconds(2),
+                onTimeoutAsync: (context, timespan, task) =>
+                {
+                    _outputHelper.WriteLine($"[{sw.Elapsed}] Timed out after {timespan}");
+                    return Task.CompletedTask;
+                }, 
+                timeoutStrategy: TimeoutStrategy.Optimistic);
+        
+        var policyWrap = Policy.WrapAsync(waitAndRetryPolicy, timeoutPolicy);
+
+        _outputHelper.WriteLine($"[{sw.Elapsed}] Making initial attempt...");
+        
+        Func<Task> act = () => policyWrap.ExecuteAsync(
+            async (cancellationToken) =>
+            {
+                var client = _serviceProvider.GetRequiredService<DelayClient>();
+                await client.Execute(5000, cancellationToken); 
+            },
+            CancellationToken.None);
+
+        await act.Should().ThrowExactlyAsync<TimeoutRejectedException>();
+    }
 }
