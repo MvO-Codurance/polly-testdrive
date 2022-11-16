@@ -10,5 +10,10 @@ public static class ClientStartup
         {
             client.BaseAddress = new Uri("http://localhost:5296/status-code/");
         });
+        
+        services.AddHttpClient<DelayClient>(client =>
+        {
+            client.BaseAddress = new Uri("http://localhost:5296/delay/");
+        });
     }
 }
