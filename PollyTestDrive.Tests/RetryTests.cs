@@ -28,12 +28,15 @@ public class RetryTests
         Stopwatch sw = new();
         sw.Start();
         
-        var policy = Policy.Handle<HttpRequestException>()
-            .RetryAsync(3, (exception, attempt) =>
-            {
-                _outputHelper.WriteLine($"[{sw.Elapsed}] Retry {attempt} failed with error: {exception.Message}");
-                totalAttempts++;
-            });
+        var policy = Policy
+            .Handle<HttpRequestException>()
+            .RetryAsync(
+                retryCount: 3, 
+                onRetry: (exception, attempt) =>
+                {
+                    _outputHelper.WriteLine($"[{sw.Elapsed}] Retry {attempt} failed with error: {exception.Message}");
+                    totalAttempts++;
+                });
 
         _outputHelper.WriteLine($"[{sw.Elapsed}] Making initial attempt...");
         
@@ -53,18 +56,20 @@ public class RetryTests
         Stopwatch sw = new();
         sw.Start();
 
-        var policy = Policy.Handle<HttpRequestException>()
-            .WaitAndRetryAsync(new[]
-            {
-                TimeSpan.FromSeconds(1),
-                TimeSpan.FromSeconds(2),
-                TimeSpan.FromSeconds(3)
-            }, 
-            (exception, calculatedWaitDuration) =>
-            {
-                _outputHelper.WriteLine($"[{sw.Elapsed}] Retry after {calculatedWaitDuration} failed with error: {exception.Message}");
-                totalAttempts++;
-            });
+        var policy = Policy
+            .Handle<HttpRequestException>()
+            .WaitAndRetryAsync(
+                sleepDurations: new[]
+                {
+                    TimeSpan.FromSeconds(1),
+                    TimeSpan.FromSeconds(2),
+                    TimeSpan.FromSeconds(3)
+                }, 
+                onRetry: (exception, calculatedWaitDuration) =>
+                {
+                    _outputHelper.WriteLine($"[{sw.Elapsed}] Retry after {calculatedWaitDuration} failed with error: {exception.Message}");
+                    totalAttempts++;
+                });
 
         _outputHelper.WriteLine($"[{sw.Elapsed}] Making initial attempt...");
         
