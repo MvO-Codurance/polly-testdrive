@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Polly;
 using PollyTestDrive.Client;
@@ -23,17 +25,55 @@ public class RetryTests
     public async Task Retry_3_Times()
     {
         int totalAttempts = 0;
-        var policy = Policy.Handle<HttpRequestException>().RetryAsync(3, (exception, attempt) =>
-        {
-            _outputHelper.WriteLine($"Retry {attempt} failed with error: {exception.Message}");
-            totalAttempts++;
-        });
+        Stopwatch sw = new();
+        sw.Start();
+        
+        var policy = Policy.Handle<HttpRequestException>()
+            .RetryAsync(3, (exception, attempt) =>
+            {
+                _outputHelper.WriteLine($"[{sw.Elapsed}] Retry {attempt} failed with error: {exception.Message}");
+                totalAttempts++;
+            });
 
-        _outputHelper.WriteLine("Making initial attempt...");
-        await policy.ExecuteAsync(async () =>
+        _outputHelper.WriteLine($"[{sw.Elapsed}] Making initial attempt...");
+        
+        Func<Task> act = () => policy.ExecuteAsync(async () =>
+            {
+                var client = _serviceProvider.GetRequiredService<StatusCodeClient>();
+                await client.Execute(500, totalAttempts); 
+            });
+
+        await act.Should().ThrowExactlyAsync<HttpRequestException>();
+    }
+    
+    [Fact]
+    public async Task Wait_And_Retry_3_Times()
+    {
+        int totalAttempts = 0;
+        Stopwatch sw = new();
+        sw.Start();
+
+        var policy = Policy.Handle<HttpRequestException>()
+            .WaitAndRetryAsync(new[]
+            {
+                TimeSpan.FromSeconds(1),
+                TimeSpan.FromSeconds(2),
+                TimeSpan.FromSeconds(3)
+            }, 
+            (exception, calculatedWaitDuration) =>
+            {
+                _outputHelper.WriteLine($"[{sw.Elapsed}] Retry after {calculatedWaitDuration} failed with error: {exception.Message}");
+                totalAttempts++;
+            });
+
+        _outputHelper.WriteLine($"[{sw.Elapsed}] Making initial attempt...");
+        
+        Func<Task> act = () => policy.ExecuteAsync(async () =>
         {
             var client = _serviceProvider.GetRequiredService<StatusCodeClient>();
             await client.Execute(500, totalAttempts); 
         });
+
+        await act.Should().ThrowExactlyAsync<HttpRequestException>();
     }
 }
