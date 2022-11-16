@@ -34,4 +34,6 @@ app.MapGet("/delay/{millisecondsDelay:int}", async ([Required][FromRoute]int mil
     return Results.Ok();
 });
 
+app.MapGet("/guid", () => Results.Ok(Guid.NewGuid()));
+
 app.Run();
