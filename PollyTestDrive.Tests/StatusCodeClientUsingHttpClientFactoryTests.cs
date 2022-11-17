@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
-using Polly;
+using Microsoft.Extensions.Logging;
 using PollyTestDrive.Client;
 using Xunit;
 using Xunit.Abstractions;
@@ -17,6 +17,7 @@ public class StatusCodeClientUsingHttpClientFactoryTests
     public StatusCodeClientUsingHttpClientFactoryTests(ITestOutputHelper outputHelper)
     {
         _outputHelper = outputHelper;
+        _services.AddLogging((builder) => builder.AddXUnit(_outputHelper));
         ClientStartup.ConfigureServices(_services);
         _serviceProvider = _services.BuildServiceProvider();
     }

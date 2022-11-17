@@ -11,6 +11,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\Polly.Contrib.LoggingPolicy\src\Polly.Contrib.LoggingPolicy\Polly.Contrib.LoggingPolicy.csproj" />
       <ProjectReference Include="..\Polly.Contrib.TimingPolicy\src\Polly.Contrib.TimingPolicy\Polly.Contrib.TimingPolicy.csproj" />
     </ItemGroup>
 

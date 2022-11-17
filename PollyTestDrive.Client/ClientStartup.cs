@@ -1,7 +1,10 @@
+using System.Net;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Polly;
+using Polly.Contrib.LoggingPolicy;
 using Polly.Contrib.TimingPolicy;
+using Polly.Extensions.Http;
 
 namespace PollyTestDrive.Client;
 
@@ -19,13 +22,28 @@ public static class ClientStartup
             {
                 client.BaseAddress = new Uri("http://localhost:5296/status-code/");
             })
-            .AddTransientHttpErrorPolicy(builder => builder.WaitAndRetryAsync(new[]
+            .AddPolicyHandler((serviceProvider, request) =>
             {
-                TimeSpan.FromSeconds(1),
-                TimeSpan.FromSeconds(2),
-                TimeSpan.FromSeconds(3)
-            }));
-        
+                var waitAndRetryPolicy = HttpPolicyExtensions.HandleTransientHttpError()
+                    .WaitAndRetryAsync(new[]
+                        {
+                            TimeSpan.FromSeconds(1),
+                            TimeSpan.FromSeconds(2),
+                            TimeSpan.FromSeconds(3)
+                        }
+                    );
+                
+                var loggingPolicy = HttpPolicyExtensions.HandleTransientHttpError()
+                    .AsyncLog(
+                        loggerProvider: ctx => serviceProvider.GetRequiredService<ILogger<StatusCodeClientUsingHttpClientFactory>>(), 
+                        logAction: (logger, context, outcome) => 
+                        {
+                            logger.LogError("The call resulted in outcome: {Happened}", outcome.Exception?.Message ?? outcome.Result.StatusCode.ToString());
+                        });
+
+                return Policy.WrapAsync(waitAndRetryPolicy, loggingPolicy);
+            });
+            
         services.AddHttpClient<DelayClientUsingHttpClientFactory>(client =>
             {
                 client.BaseAddress = new Uri("http://localhost:5296/delay/");

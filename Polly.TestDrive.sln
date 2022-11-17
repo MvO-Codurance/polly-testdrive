@@ -8,6 +8,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PollyTestDrive.Tests", "Pol
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Polly.Contrib.TimingPolicy", "Polly.Contrib.TimingPolicy\src\Polly.Contrib.TimingPolicy\Polly.Contrib.TimingPolicy.csproj", "{402AD135-E2C0-4EEE-A618-34431E15DF92}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Polly.Contrib.LoggingPolicy", "Polly.Contrib.LoggingPolicy\src\Polly.Contrib.LoggingPolicy\Polly.Contrib.LoggingPolicy.csproj", "{0A49D562-CF00-4163-88D9-7B8C3076E00C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +32,9 @@ Global
 		{402AD135-E2C0-4EEE-A618-34431E15DF92}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{402AD135-E2C0-4EEE-A618-34431E15DF92}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{402AD135-E2C0-4EEE-A618-34431E15DF92}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0A49D562-CF00-4163-88D9-7B8C3076E00C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0A49D562-CF00-4163-88D9-7B8C3076E00C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0A49D562-CF00-4163-88D9-7B8C3076E00C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0A49D562-CF00-4163-88D9-7B8C3076E00C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
